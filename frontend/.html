@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Payroll Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <style>
+    body { scroll-behavior: smooth; }
+    .hidden { display: none; }
+    .active-tab { border-bottom: 3px solid #60a5fa; color:#60a5fa; }
+    .transition-all { transition: all 0.3s ease; }
+    .card { 
+      background: linear-gradient(145deg, #1f2937, #111827);
+      box-shadow: 6px 6px 12px #0b0d10, -6px -6px 12px #2a2e38;
+      border-radius: 1rem;
+    }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 15px rgba(0,0,0,0.2);}
+  </style>
+</head>
+<body class="bg-gray-900 text-white font-sans">
+
+<header class="bg-gradient-to-r from-blue-900 via-purple-900 to-indigo-900 p-6 shadow-xl flex justify-between items-center">
+  <h1 class="text-3xl font-bold tracking-wide">💼 Payroll Dashboard</h1>
+  <button id="connectWallet" class="bg-blue-600 hover:bg-blue-700 px-5 py-2 rounded-lg font-bold transition-all shadow-lg btn">Connect Wallet</button>
+</header>
+
+<nav class="bg-gray-800 mt-6 p-4 flex justify-center gap-6 shadow-inner rounded-lg sticky top-0 z-50">
+  <button class="tab-btn active-tab font-semibold transition-all" data-target="dashboard">Dashboard</button>
+  <button class="tab-btn font-semibold transition-all" data-target="withdraw">Withdraw</button>
+  <button class="tab-btn font-semibold transition-all" data-target="milestones">Milestones</button>
+  <button class="tab-btn font-semibold transition-all" data-target="tokenPayment">Token Payment</button>
+  <button class="tab-btn font-semibold transition-all" data-target="settings">Settings</button>
+  <button class="tab-btn font-semibold transition-all" data-target="history">Transactions</button>
+</nav>
+
+<div class="p-6 space-y-6">
+
+<section id="dashboard">
+<h2 class="text-2xl font-bold mb-6 text-blue-400">💰 Salary Dashboard</h2>
+<div class="card p-6 mb-6">
+<p class="font-semibold text-lg">Employee: Alice</p>
+<p class="mt-1 text-gray-300">Current Salary: <span id="currentSalary">0</span> Tokens</p>
+<div class="bg-gray-700 rounded-full h-4 mt-3">
+<div id="salaryProgress" class="bg-green-500 h-4 rounded-full transition-all"></div>
+</div>
+</div>
+
+<div class="card p-6">
+<p class="font-semibold mb-2 text-gray-200">Wallet Status: <span id="walletStatus">Disconnected</span></p>
+<p class="font-semibold text-gray-200">Token Balance: <span id="walletBalance">0</span> Tokens</p>
+</div>
+</section>
+
+<section id="withdraw" class="hidden">
+<h2 class="text-2xl font-bold mb-4 text-blue-400">💵 Withdraw Tokens</h2>
+<input id="withdrawAmount" type="number" placeholder="Enter amount" class="w-full p-3 mb-4 rounded-lg text-black shadow-md"/>
+<button id="withdrawBtn" class="btn bg-gradient-to-r from-blue-600 to-blue-500 w-full py-3 font-bold text-white rounded-lg shadow-lg">Withdraw</button>
+<p id="withdrawStatus" class="mt-3"></p>
+</section>
+
+<section id="milestones" class="hidden">
+<h2 class="text-2xl font-bold mb-4 text-purple-400">🎯 Milestone Payments</h2>
+<div class="flex flex-col gap-4">
+<button class="milestoneBtn btn bg-gradient-to-r from-purple-600 to-purple-500 py-3 font-semibold rounded-lg shadow-lg">Release Milestone 1 - 500 Tokens</button>
+<button class="milestoneBtn btn bg-gradient-to-r from-purple-600 to-purple-500 py-3 font-semibold rounded-lg shadow-lg">Release Milestone 2 - 700 Tokens</button>
+<p id="milestoneStatus" class="mt-2"></p>
+</div>
+</section>
+
+<section id="tokenPayment" class="hidden">
+<h2 class="text-2xl font-bold mb-4 text-yellow-400">💸 Token Payment</h2>
+<input id="tokenRecipient" type="text" placeholder="Enter Employee Name" class="w-full p-3 mb-4 rounded-lg text-black shadow-md"/>
+<input id="tokenAmount" type="number" placeholder="Enter Amount" class="w-full p-3 mb-4 rounded-lg text-black shadow-md"/>
+<button id="sendTokenBtn" class="btn bg-gradient-to-r from-yellow-500 to-yellow-400 w-full py-3 font-bold rounded-lg shadow-lg">Send Tokens</button>
+<p id="tokenStatus" class="mt-2"></p>
+</section>
+
+<section id="settings" class="hidden">
+<h2 class="text-2xl font-bold mb-4 text-green-400">⚙️ Account Settings</h2>
+<label class="block mb-2 text-gray-300 font-semibold">Delegate Access:</label>
+<input type="text" id="delegateEmail" placeholder="Enter manager email" class="w-full p-3 mb-4 rounded-lg text-black shadow-md"/>
+<button id="updateSettingsBtn" class="btn bg-gradient-to-r from-green-600 to-green-500 w-full py-3 font-bold rounded-lg shadow-lg">Update Settings</button>
+<p id="settingsStatus" class="mt-2"></p>
+</section>
+
+<section id="history" class="hidden">
+<h2 class="text-2xl font-bold mb-4 text-indigo-400">📜 Transaction History</h2>
+<ul id="transactionHistory" class="list-disc pl-6 max-h-96 overflow-y-auto"></ul>
+</section>
+
+</div>
+
+<script>
+
+/* TAB NAVIGATION */
+const tabs = document.querySelectorAll(".tab-btn");
+const sections = document.querySelectorAll("section");
+
+tabs.forEach(tab => {
+  tab.addEventListener("click", () => {
+    sections.forEach(sec => sec.classList.add("hidden"));
+    document.getElementById(tab.dataset.target).classList.remove("hidden");
+    tabs.forEach(t => t.classList.remove("active-tab"));
+    tab.classList.add("active-tab");
+  });
+});
+
+/* WALLET CONNECT */
+const connectBtn = document.getElementById("connectWallet");
+const walletStatus = document.getElementById("walletStatus");
+const walletBalanceEl = document.getElementById("walletBalance");
+
+connectBtn.addEventListener("click", async () => {
+  const res = await fetch("http://127.0.0.1:5000/wallet/connect", { method: "POST" });
+  const data = await res.json();
+  walletStatus.innerText = data.connected ? "Connected" : "Disconnected";
+  walletBalanceEl.innerText = data.balance;
+});
+
+/* SALARY STREAM */
+let salary = 0;
+const monthlySalary = 3000;
+const salaryDisplay = document.getElementById("currentSalary");
+const progressBar = document.getElementById("salaryProgress");
+
+setInterval(() => {
+  if (salary < monthlySalary) salary += 10;
+  salaryDisplay.innerText = salary;
+  progressBar.style.width = (salary / monthlySalary * 100) + "%";
+}, 1000);
+
+/* WITHDRAW */
+document.getElementById("withdrawBtn").addEventListener("click", async () => {
+  const amount = parseInt(document.getElementById("withdrawAmount").value);
+
+  const res = await fetch("http://127.0.0.1:5000/withdraw", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({amount})
+  });
+
+  const data = await res.json();
+  document.getElementById("withdrawStatus").innerText = data.message;
+});
+
+</script>
+
+</body>
+</html>
